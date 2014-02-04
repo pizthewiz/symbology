@@ -1,33 +1,20 @@
 /*jshint node:true, strict:false */
 
-// $ node symbology.js --binary=/Users/pizthewiz/Library/Developer/Xcode/Archives/2014-01-21/RadicalApp-AppStore\ 1-21-14,\ 14.22.xcarchive/Products/Applications/RadicalApp.app/RadicalApp --log=/Users/pizthewiz/Desktop/crashReport
+// $ node symbology.js --log=/Users/pizthewiz/Desktop/crashReport --binary=/Users/pizthewiz/Library/Developer/Xcode/Archives/2014-01-21/RadicalApp-AppStore\ 1-21-14,\ 14.22.xcarchive/Products/Applications/RadicalApp.app/RadicalApp
 
 var fs = require('fs');
 var exec = require('child_process').exec;
 var path = require('path');
+var argv = require('optimist').argv;
 
 function usage() {
-  console.log('symbolicate a crashlog from symbols in a binary\n');
+  console.log('symbolize an iOS crash log from a binary\n');
   console.log('Usage: symbology.js\n');
 
   console.log('--log [path]');
   console.log('--binary [path]');
   process.exit(code=0);
 }
-
-var argv = {};
-process.argv.slice(2, process.argv.length).forEach(function (a) {
-  if (a.split('--').length != 2) {
-    usage();
-  }
-
-  var a = a.split('--')[1];
-  if (a.split('=').length == 2) {    
-    argv[a.split('=')[0]] = a.split('=')[1];
-  } else {
-    argv[a] = {};
-  }
-});
 
 if (argv.usage || argv.help || !argv.log || !argv.binary) {
   usage();
@@ -49,7 +36,7 @@ function processLines() {
   var line = lines.shift();
   if (line === undefined) {
     console.log('DONE');
-    var outFile = path.join(path.dirname(argv.log), path.basename(argv.log) + '-processed' + path.extname(argv.log));
+    var outFile = path.join(path.dirname(argv.log), path.basename(argv.log) + '-symbolized' + path.extname(argv.log));
     fs.writeFileSync(outFile, processedLines.join('\n'));
     return;
   }
