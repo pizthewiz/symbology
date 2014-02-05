@@ -1,7 +1,5 @@
 /*jshint node:true, strict:false */
 
-// $ node symbology.js --log=/Users/pizthewiz/Desktop/crashReport --binary=/Users/pizthewiz/Library/Developer/Xcode/Archives/2014-01-21/RadicalApp-AppStore\ 1-21-14,\ 14.22.xcarchive/Products/Applications/RadicalApp.app/RadicalApp
-
 var fs = require('fs');
 var exec = require('child_process').exec;
 var path = require('path');
@@ -57,17 +55,31 @@ function processLines() {
       processLines();
     });
   } else {
-    processedLines.push(line);    
+    processedLines.push(line);
     processLines();
   }
 }
 
-fs.readFile(argv.log, function (err, data) {
-  if (err) {
-    console.log('ERROR - failed to read file - ' + err);
-    process.exit(code=0);
-  }
+function processCrashLog() {
+  fs.readFile(argv.log, function (err, data) {
+    if (err) {
+      console.log('ERROR - failed to read file - ' + err);
+      process.exit(code=0);
+    }
 
-  lines = data.toString().split('\n');
-  processLines();
-});
+    lines = data.toString().split('\n');
+    processLines();
+  });
+}
+
+// validate
+if (!fs.existsSync(argv.log)) {
+    console.log('ERROR - crash log file not found at given path');
+    process.exit(code=0);
+}
+if (!fs.existsSync(argv.binary)) {
+    console.log('ERROR - application binary not found at given path');
+    process.exit(code=0);
+}
+
+processCrashLog();
