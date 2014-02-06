@@ -4,9 +4,10 @@ var fs = require('fs');
 var exec = require('child_process').exec;
 var path = require('path');
 var argv = require('optimist').argv;
+var async = require('async');
 
 function usage() {
-  console.log('symbolize an iOS crash log from a binary\n');
+  console.log('symbolicate an iOS crash log from a executable\n');
   console.log('Usage: symbology.js\n');
 
   console.log('--log [path]');
@@ -60,11 +61,11 @@ function processLines() {
   }
 }
 
-function processCrashLog() {
-  fs.readFile(argv.log, function (err, data) {
+function processCrashLog(file) {
+  fs.readFile(file, function (err, data) {
     if (err) {
       console.log('ERROR - failed to read file - ' + err);
-      process.exit(code=0);
+      process.exit(1);
     }
 
     lines = data.toString().split('\n');
@@ -72,14 +73,29 @@ function processCrashLog() {
   });
 }
 
-// validate
-if (!fs.existsSync(argv.log)) {
-    console.log('ERROR - crash log file not found at given path');
-    process.exit(code=0);
-}
-if (!fs.existsSync(argv.binary)) {
-    console.log('ERROR - application binary not found at given path');
-    process.exit(code=0);
-}
 
-processCrashLog();
+// validate input files and process
+async.parallel([
+  function (callback) {
+    fs.exists(argv.log, function (exists) {
+      if (!exists) {
+        console.log('ERROR - crash log file not found at given path');
+      }
+      callback(null, exists);
+    });
+  },
+  function (callback) {
+    fs.exists(argv.executable, function (exists) {
+      if (!exists) {
+        console.log('ERROR - executable not found at given path');
+      }
+      callback(null, exists);
+    });
+  }
+], function (err, results) {
+  if (!results[0] || !results[1]) {
+    process.exit(1);
+  }
+
+  processCrashLog(argv.log);
+});
