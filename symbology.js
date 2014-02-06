@@ -10,11 +10,11 @@ function usage() {
   console.log('Usage: symbology.js\n');
 
   console.log('--log [path]');
-  console.log('--binary [path]');
-  process.exit(code=0);
+  console.log('--executable [path]');
+  process.exit();
 }
 
-if (argv.usage || argv.help || !argv.log || !argv.binary) {
+if (argv.usage || argv.help || !argv.log || !argv.executable) {
   usage();
 }
 
@@ -24,7 +24,7 @@ var app = null;
 var re = /^(\d+)\s+(\w+)\s+(\w+)\s+(.*)/;
 
 function lookupSymbol(address, callback) {
-  var command = "DEVELOPER_DIR='/Applications/Xcode.app/Contents/Developer' /usr/bin/atos -d -arch armv7 -o '" + argv.binary + "' " + address;
+  var command = "DEVELOPER_DIR='/Applications/Xcode.app/Contents/Developer' /usr/bin/atos -d -arch armv7 -o '" + argv.executable + "' " + address;
   exec(command, function (err, stdout, stderr) {
     callback(err, stdout);
   });
