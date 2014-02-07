@@ -68,34 +68,23 @@ function processCrashLog(file) {
       process.exit(1);
     }
 
+    // TODO - validation?
+
     lines = data.toString().split('\n');
     processLines();
   });
 }
 
 
-// validate input files and process
-async.parallel([
-  function (callback) {
-    fs.exists(argv.log, function (exists) {
-      if (!exists) {
-        console.log('ERROR - crash log file not found at given path');
-      }
-      callback(null, exists);
-    });
-  },
-  function (callback) {
-    fs.exists(argv.executable, function (exists) {
-      if (!exists) {
-        console.log('ERROR - executable not found at given path');
-      }
-      callback(null, exists);
-    });
-  }
-], function (err, results) {
-  if (!results[0] || !results[1]) {
-    process.exit(1);
-  }
 
-  processCrashLog(argv.log);
-});
+if (require.main === module) {
+  // validate existance of input files
+  async.every([argv.log, argv.executable], fs.exists, function (result) {
+    if (!result) {
+      console.log('ERROR - input file not found at given path');
+      process.exit(1);
+    }
+
+    processCrashLog(argv.log);
+  });
+}
