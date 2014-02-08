@@ -1,14 +1,11 @@
 {
   "name": "symbology",
   "version": "0.0.0",
-  "description": "symbolize an iOS crash log from a binary",
+  "description": "Add context to a bare or mis-symbolicated iOS crash log",
   "bugs": {
     "url" : "http://github.com/pizthewiz/symbology/issues"
   },
   "license": "MIT",
-  "scripts": {
-    "start": "node symbology.js"
-  },
   "dependencies": {
     "optimist": "*",
     "async": "*"
