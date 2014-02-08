@@ -9,4 +9,4 @@ $ node symbology.js --log ~/Desktop/Buggy.crash \
 ```
 
 #### NOTE
-Symbols are mined from a *fixed* architecture, `armv7`, but that will be made more flexible soon.
+Symbols are mined from a *fixed* architecture, `armv7`, but that will be made more flexible soon. You might consider using [Crashlytics](https://crashlytics.com/) which is a Twitter-owned *real-time* crash reporting tool that does a very nice job symbolicating logs and just so happens to be *free* to boot.
