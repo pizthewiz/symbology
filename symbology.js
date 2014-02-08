@@ -30,7 +30,7 @@ function resolveSymbolForAddress(element, callback) {
 function processCrashLog(filePath) {
   fs.readFile(filePath, function (err, data) {
     if (err) {
-      console.log('ERROR - failed to read crash log - ' + err);
+      console.log('ERROR - failed to read crash log\n' + err);
       process.exit(1);
     }
 
@@ -53,7 +53,7 @@ function processCrashLog(filePath) {
 
     async.mapSeries(queue, resolveSymbolForAddress, function (err, results) {
       if (err) {
-        console.log('ERROR - failed to resolve symbol for address - ' + err);
+        console.log('ERROR - failed to resolve symbol\n' + err);
         process.exit(1);
       }
 
@@ -65,7 +65,7 @@ function processCrashLog(filePath) {
       var outFile = path.join(path.dirname(argv.log), path.basename(argv.log) + '-symbolicated' + path.extname(argv.log));
       fs.writeFile(outFile, lines.join('\n'), function (err) {
         if (err) {
-          console.log('ERROR - failed to write output file - ' + err);
+          console.log('ERROR - failed to write output file\n' + err);
           process.exit(1);
         }
 
