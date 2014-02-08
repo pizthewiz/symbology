@@ -19,66 +19,65 @@ if (argv.usage || argv.help || !argv.log || !argv.executable) {
   usage();
 }
 
-var lines = [];
-var processedLines = [];
-var app = null;
-var re = /^(\d+)\s+(\w+)\s+(\w+)\s+(.*)/;
-
-function lookupSymbol(address, callback) {
-  var command = "DEVELOPER_DIR='/Applications/Xcode.app/Contents/Developer' /usr/bin/atos -d -arch armv7 -o '" + argv.executable + "' " + address;
+function resolveSymbolForAddress(element, callback) {
+  var command = "xcrun atos -arch arm7 -o '" + argv.executable + "' " + element.address;
   exec(command, function (err, stdout, stderr) {
-    callback(err, stdout);
+    element.symbol = stdout.trim();
+    callback(err, element);
   });
 }
 
-function processLines() {
-  var line = lines.shift();
-  if (line === undefined) {
-    console.log('DONE');
-    var outFile = path.join(path.dirname(argv.log), path.basename(argv.log) + '-symbolized' + path.extname(argv.log));
-    fs.writeFileSync(outFile, processedLines.join('\n'));
-    return;
-  }
-
-  if (!app && line.indexOf('Path:') != -1) {
-    app = line.split('/').pop();
-  }
-
-  var matches = re.exec(line);
-  if (matches && matches[2] === app) {
-    lookupSymbol(matches[3], function (err, stdout) {
-      if (err) {
-        console.log('ERROR - ' + err);
-      }
-
-      line = line.replace(matches[4], stdout.trim());
-      processedLines.push(line);
-      processLines();
-    });
-  } else {
-    processedLines.push(line);
-    processLines();
-  }
-}
-
-function processCrashLog(file) {
-  fs.readFile(file, function (err, data) {
+function processCrashLog(filePath) {
+  fs.readFile(filePath, function (err, data) {
     if (err) {
-      console.log('ERROR - failed to read file - ' + err);
+      console.log('ERROR - failed to read crash log - ' + err);
       process.exit(1);
     }
 
-    // TODO - validation?
+    var lines = data.toString().split('\n');
+    var queue = [];
+    var app = path.basename(argv.executable);
+    var threadFrameRegEx = new RegExp('^\\d+\\s+' + app + '\\s+(\\w+)\\s+(.*)');
 
-    lines = data.toString().split('\n');
-    processLines();
-  });
+    // find frames that need symbolicating
+    lines.forEach(function (element, index) {
+      if (!threadFrameRegEx.test(element)) {
+        return;
+      }
+
+      var matches = threadFrameRegEx.exec(element);
+      var address = matches[1];
+      var fragment = matches[0].replace(matches[2], '');
+      queue.push({lineIndex: index, address: address, fragment: fragment});
+    });
+
+    async.mapSeries(queue, resolveSymbolForAddress, function (err, results) {
+      if (err) {
+        console.log('ERROR - failed to resolve symbol for address - ' + err);
+        process.exit(1);
+      }
+
+      // rewrite processed lines
+      results.forEach(function (element) {
+        lines[element.lineIndex] = element.fragment + element.symbol;
+      });
+
+      var outFile = path.join(path.dirname(argv.log), path.basename(argv.log) + '-symbolicated' + path.extname(argv.log));
+      fs.writeFile(outFile, lines.join('\n'), function (err) {
+        if (err) {
+          console.log('ERROR - failed to write output file - ' + err);
+          process.exit(1);
+        }
+
+        console.log('DONE');
+      }); // fs.writeFile
+    }); // async.mapSeries
+  }); // fs.readFile
 }
 
 
 
 if (require.main === module) {
-  // validate existance of input files
   async.every([argv.log, argv.executable], fs.exists, function (result) {
     if (!result) {
       console.log('ERROR - input file not found at given path');
