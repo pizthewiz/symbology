@@ -20,7 +20,7 @@ if (argv.usage || argv.help || !argv.log || !argv.executable) {
 }
 
 function resolveSymbolForAddress(element, callback) {
-  var command = "xcrun atos -arch arm7 -o '" + argv.executable + "' " + element.address;
+  var command = "xcrun atos -arch armv7 -o '" + argv.executable + "' " + element.address;
   exec(command, function (err, stdout, stderr) {
     element.symbol = stdout.trim();
     callback(err, element);
