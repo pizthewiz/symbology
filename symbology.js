@@ -3,20 +3,21 @@
 var fs = require('fs');
 var exec = require('child_process').exec;
 var path = require('path');
-var argv = require('optimist').argv;
 var async = require('async');
 
-function usage() {
-  console.log('symbolicate an iOS crash log from a executable\n');
-  console.log('Usage: symbology.js\n');
+var optimist = require('optimist')
+  .usage('Usage: symbology -l [crashlog] -e [executable]')
+  .alias('l', 'log')
+  .describe('l', 'Crash Log')
+  .alias('e', 'executable')
+  .describe('e', 'Executable')
+  .demand([ 'l', 'e' ]);
 
-  console.log('--log [path]');
-  console.log('--executable [path]');
+var argv = optimist.argv;
+
+if (argv.help) {
+  optimist.showHelp();
   process.exit();
-}
-
-if (argv.usage || argv.help || !argv.log || !argv.executable) {
-  usage();
 }
 
 function resolveSymbolForAddress(element, callback) {
