@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 /*jshint node:true, strict:false */
 
 var fs = require('fs');
@@ -11,7 +12,7 @@ var optimist = require('optimist')
   .describe('l', 'Crash Log')
   .alias('e', 'executable')
   .describe('e', 'Executable')
-  .demand([ 'l', 'e' ]);
+  .demand(['l', 'e']);
 
 var argv = optimist.argv;
 
